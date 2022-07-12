@@ -9,7 +9,7 @@ const nextConfig = {
     return [
       {
         source: '/canceled',
-        to: '/',
+        destination: '/',
         permanent: true,
       },
     ]
