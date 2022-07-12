@@ -5,13 +5,11 @@ import { getSession } from '@auth0/nextjs-auth0'
 export default async function handler(req, res) {
   const session = getSession(req, res)
   const user = session?.user
-  const stripeId = user['http://localhost:3000/stripe_customer_id']
-  if (req.method === 'POST') {
-    try {
-      // Create a checkout Session
-      let session
-      if (user) {
-        session = await stripe.checkout.sessions.create({
+  if (user) {
+    const stripeId = user['http://localhost:3000/stripe_customer_id']
+    if (req.method === 'POST') {
+      try {
+        const session = await stripe.checkout.sessions.create({
           submit_type: 'pay',
           mode: 'payment',
           customer: stripeId,
@@ -41,8 +39,15 @@ export default async function handler(req, res) {
           success_url: `${req.headers.origin}/success?&session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${req.headers.origin}/canceled`,
         })
-      } else {
-        session = await stripe.checkout.sessions.create({
+        res.status(200).json(session)
+      } catch (error) {
+        res.status(error.statusCode || 500).json(error.message)
+      }
+    }
+  } else {
+    if (req.method === 'POST') {
+      try {
+        const session = await stripe.checkout.sessions.create({
           submit_type: 'pay',
           mode: 'payment',
           payment_method_types: ['card'],
@@ -71,10 +76,10 @@ export default async function handler(req, res) {
           success_url: `${req.headers.origin}/success?&session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${req.headers.origin}/canceled`,
         })
+        res.status(200).json(session)
+      } catch (error) {
+        res.status(error.statusCode || 500).json(error.message)
       }
-      res.status(200).json(session)
-    } catch (error) {
-      res.status(error.statusCode || 500).json(error.message)
     }
   }
 }
