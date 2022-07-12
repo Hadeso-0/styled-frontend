@@ -1,8 +1,6 @@
 import { useRouter } from 'next/router'
-const { stripe } = require('stripe')(
-  `${process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY}`,
-)
-import { WithPageAuthRequired, getSession } from '@auth0/nextjs-auth0'
+const stripe = require('stripe')(`${process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY}`)
+import { withPageAuthRequired, getSession } from '@auth0/nextjs-auth0'
 import styled from 'styled-components'
 import formatMoney from '../lib/formatMoney'
 
@@ -24,17 +22,23 @@ export default function Profile({ user, orders }) {
         <h2>{user.name}</h2>
         <p>{user.email}</p>
         <div>
-          {orders.map((order) => {
-            return (
-              <Order key={order.id}>
-                <h1>Order Number: {order.id}</h1>
-                <h2>Amount: ${formatMoney(order.amount)}</h2>
-                <h2>Receipt Email: {user.email}</h2>
-              </Order>
-            )
-          })}
+          {orders.length > 0 ? (
+            orders.map((order) => {
+              return (
+                <Order key={order.id}>
+                  <h1>Order Number: {order.id}</h1>
+                  <h2>Amount: ${formatMoney(order.amount)}</h2>
+                  <h2>Receipt Email: {user.email}</h2>
+                </Order>
+              )
+            })
+          ) : (
+            <h3>You have more shopping to do 😜</h3>
+          )}
         </div>
-        <button onClick={() => route.push('/api/auth/logout')}>Logout</button>
+        <Logout>
+          <button onClick={() => route.push('/api/auth/logout')}>Logout</button>
+        </Logout>
       </div>
     )
   )
@@ -48,5 +52,21 @@ const Order = styled.div`
   justify-content: space-between;
   h1 {
     font-size: 1.2rem;
+  }
+`
+export const Logout = styled.div`
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  button {
+    background: var(--primary);
+    padding: 1rem 2rem;
+    width: max(30%, max-content);
+    color: white;
+    margin-top: 0.6rem;
+    cursor: pointer;
+    border: none;
+    outline: none;
   }
 `
